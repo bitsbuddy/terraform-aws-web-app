@@ -1,3 +1,4 @@
+
 # Define S3 resources.
 # https://aws.amazon.com/s3
 
@@ -56,6 +57,11 @@ resource "aws_s3_bucket" "domain" {
 
   # All objects (including locked) are deleted when deleting a bucket.
   force_destroy = true
+}
+
+resource "aws_s3_bucket" "new_bucket" {
+  bucket = "new-bucket-name"
+  acl    = "private"
 }
 
 resource "aws_s3_bucket_policy" "domain_policy" {
