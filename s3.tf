@@ -59,9 +59,19 @@ resource "aws_s3_bucket" "domain" {
   force_destroy = true
 }
 
-resource "aws_s3_bucket" "new_bucket" {
-  bucket = "new-bucket-name"
-  acl    = "private"
+resource "aws_s3_bucket" "1_bucket" {
+  bucket = "1-bucket"
+  acl    = "public-read"
+
+  website {
+    index_document = "index.html"
+  }
+
+  versioning {
+    enabled = true
+  }
+
+  force_destroy = true
 }
 
 resource "aws_s3_bucket_policy" "domain_policy" {
