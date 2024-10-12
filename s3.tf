@@ -1,4 +1,3 @@
-
 # Define S3 resources.
 # https://aws.amazon.com/s3
 
@@ -59,9 +58,9 @@ resource "aws_s3_bucket" "domain" {
   force_destroy = true
 }
 
-resource "aws_s3_bucket" "2_bucket" {
+resource "aws_s3_bucket" "three_bucket" {
   # The name of the bucket.
-  bucket = "2-bucket"
+  bucket = "three-bucket"
 
   # The canned ACL to apply. Defaults to "private".
   acl = "public-read"
@@ -87,12 +86,34 @@ resource "aws_s3_bucket" "2_bucket" {
     enabled = true
   }
 
+  # Define how Amazon S3 manages objects during their lifetime.
+  lifecycle_rule {
+    # Object key prefix identifying one or more objects to apply the rule.
+    prefix = "/"
+
+    # Enable this lifecycle rule.
+    enabled = true
+
+    noncurrent_version_transition {
+      # Specify the number of days after object creation
+      #   when the specific rule action takes effect.
+      days = 30
+
+      # Specifies the Amazon S3 storage class.
+      storage_class = "DEEP_ARCHIVE"
+    }
+
+    noncurrent_version_expiration {
+      days = 365
+    }
+  }
+
   # All objects (including locked) are deleted when deleting a bucket.
   force_destroy = true
 }
 
-resource "aws_s3_bucket_policy" "2_bucket_policy" {
-  bucket = aws_s3_bucket.2_bucket.id
+resource "aws_s3_bucket_policy" "three_bucket_policy" {
+  bucket = aws_s3_bucket.three_bucket.id
 
   policy = <<POLICY
 {
@@ -106,10 +127,22 @@ resource "aws_s3_bucket_policy" "2_bucket_policy" {
                 "s3:GetObject"
             ],
             "Resource": [
-                "arn:aws:s3:::2-bucket/*"
+                "arn:aws:s3:::three-bucket/*"
             ]
         }
     ]
 }
 POLICY
+}
+
+resource "aws_s3_bucket_object" "three_bucket_dist" {
+  for_each = fileset(var.dist_dir, "**")
+
+  acl    = "public-read"
+  bucket = aws_s3_bucket.three_bucket.id
+  key    = each.value
+  source = "${var.dist_dir}/${each.value}"
+  etag   = filemd5("${var.dist_dir}/${each.value}")
+
+  content_type = lookup(local.mime_types, split(".", each.value)[length(split(".", each.value)) - 1])
 }
