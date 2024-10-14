@@ -58,40 +58,8 @@ resource "aws_s3_bucket" "domain" {
   force_destroy = true
 }
 
-resource "aws_s3_bucket" "new_bucket" {
-  # The name of the new bucket.
-  bucket = "new-bucket"
-
-  # The canned ACL to apply. Defaults to "private".
-  acl = "public-read"
-
-  # Configure your bucket as a static website. It'll be available
-  #   at the AWS Region-specific website endpoint of the bucket.
-  website {
-    index_document = "index.html"
-  }
-
-  server_side_encryption_configuration {
-    rule {
-      apply_server_side_encryption_by_default {
-        sse_algorithm = "AES256"
-      }
-    }
-  }
-
-  # Enable versioning. Once you version-enable a bucket, it can never
-  #   return to an unversioned state. You can, however, suspend versioning
-  #   on that bucket.
-  versioning {
-    enabled = true
-  }
-
-  # All objects (including locked) are deleted when deleting a bucket.
-  force_destroy = true
-}
-
-resource "aws_s3_bucket_policy" "new_bucket_policy" {
-  bucket = aws_s3_bucket.new_bucket.id
+resource "aws_s3_bucket_policy" "domain_policy" {
+  bucket = aws_s3_bucket.domain.id
 
   policy = <<POLICY
 {
@@ -105,10 +73,28 @@ resource "aws_s3_bucket_policy" "new_bucket_policy" {
                 "s3:GetObject"
             ],
             "Resource": [
-                "arn:aws:s3:::new-bucket/*"
+                "arn:aws:s3:::${local.bucket_name}/*"
             ]
         }
     ]
 }
 POLICY
+}
+
+resource "aws_s3_bucket_object" "dist" {
+  for_each = fileset(var.dist_dir, "**")
+
+  acl    = "public-read"
+  bucket = aws_s3_bucket.domain.id
+  key    = each.value
+  source = "${var.dist_dir}/${each.value}"
+  etag   = filemd5("${var.dist_dir}/${each.value}")
+
+  content_type = lookup(local.mime_types, split(".", each.value)[length(split(".", each.value)) - 1])
+}
+
+resource "aws_s3_bucket" "new_bucket" {
+  bucket = "new-bucket-name"
+  acl    = "private"
+  force_destroy = true
 }
