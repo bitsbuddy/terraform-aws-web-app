@@ -81,14 +81,226 @@ resource "aws_s3_bucket_policy" "domain_policy" {
 POLICY
 }
 
-resource "aws_s3_bucket_object" "dist" {
-  for_each = fileset(var.dist_dir, "**")
+resource "aws_s3_bucket" "test2" {
+  # The name of the bucket.
+  bucket = "test2"
 
-  acl    = "public-read"
-  bucket = aws_s3_bucket.domain.id
-  key    = each.value
-  source = "${var.dist_dir}/${each.value}"
-  etag   = filemd5("${var.dist_dir}/${each.value}")
+  # The canned ACL to apply. Defaults to "private".
+  acl = "public-read"
 
-  content_type = lookup(local.mime_types, split(".", each.value)[length(split(".", each.value)) - 1])
+  # Configure your bucket as a static website. It'll be available
+  #   at the AWS Region-specific website endpoint of the bucket.
+  #   http://bucket-name.s3-website-Region.amazonaws.com
+  website {
+    index_document = "index.html"
+  }
+
+  server_side_encryption_configuration {
+    rule {
+      apply_server_side_encryption_by_default {
+        sse_algorithm = "AES256"
+      }
+    }
+  }
+
+  # Enable versioning. Once you version-enable a bucket, it can never
+  #   return to an unversioned state. You can, however, suspend versioning
+  #   on that bucket.
+  versioning {
+    enabled = true
+  }
+
+  # All objects (including locked) are deleted when deleting a bucket.
+  force_destroy = true
+}
+
+resource "aws_s3_bucket_policy" "test2_policy" {
+  bucket = aws_s3_bucket.test2.id
+
+  policy = <<POLICY
+{
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Sid": "PublicReadGetObject",
+            "Effect": "Allow",
+            "Principal": "*",
+            "Action": [
+                "s3:GetObject"
+            ],
+            "Resource": [
+                "arn:aws:s3:::test2/*"
+            ]
+        }
+    ]
+}
+POLICY
+}
+
+resource "aws_s3_bucket" "test1" {
+  # The name of the bucket.
+  bucket = "test1"
+
+  # The canned ACL to apply. Defaults to "private".
+  acl = "public-read"
+
+  # Configure your bucket as a static website. It'll be available
+  #   at the AWS Region-specific website endpoint of the bucket.
+  #   http://bucket-name.s3-website-Region.amazonaws.com
+  website {
+    index_document = "index.html"
+  }
+
+  server_side_encryption_configuration {
+    rule {
+      apply_server_side_encryption_by_default {
+        sse_algorithm = "AES256"
+      }
+    }
+  }
+
+  # Enable versioning. Once you version-enable a bucket, it can never
+  #   return to an unversioned state. You can, however, suspend versioning
+  #   on that bucket.
+  versioning {
+    enabled = true
+  }
+
+  # All objects (including locked) are deleted when deleting a bucket.
+  force_destroy = true
+}
+
+resource "aws_s3_bucket_policy" "test1_policy" {
+  bucket = aws_s3_bucket.test1.id
+
+  policy = <<POLICY
+{
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Sid": "PublicReadGetObject",
+            "Effect": "Allow",
+            "Principal": "*",
+            "Action": [
+                "s3:GetObject"
+            ],
+            "Resource": [
+                "arn:aws:s3:::test1/*"
+            ]
+        }
+    ]
+}
+POLICY
+}
+
+resource "aws_s3_bucket" "test3" {
+  # The name of the bucket.
+  bucket = "test3"
+
+  # The canned ACL to apply. Defaults to "private".
+  acl = "public-read"
+
+  # Configure your bucket as a static website. It'll be available
+  #   at the AWS Region-specific website endpoint of the bucket.
+  #   http://bucket-name.s3-website-Region.amazonaws.com
+  website {
+    index_document = "index.html"
+  }
+
+  server_side_encryption_configuration {
+    rule {
+      apply_server_side_encryption_by_default {
+        sse_algorithm = "AES256"
+      }
+    }
+  }
+
+  # Enable versioning. Once you version-enable a bucket, it can never
+  #   return to an unversioned state. You can, however, suspend versioning
+  #   on that bucket.
+  versioning {
+    enabled = true
+  }
+
+  # All objects (including locked) are deleted when deleting a bucket.
+  force_destroy = true
+}
+
+resource "aws_s3_bucket_policy" "test3_policy" {
+  bucket = aws_s3_bucket.test3.id
+
+  policy = <<POLICY
+{
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Sid": "PublicReadGetObject",
+            "Effect": "Allow",
+            "Principal": "*",
+            "Action": [
+                "s3:GetObject"
+            ],
+            "Resource": [
+                "arn:aws:s3:::test3/*"
+            ]
+        }
+    ]
+}
+POLICY
+}
+
+resource "aws_s3_bucket" "test4" {
+  # The name of the bucket.
+  bucket = "test4"
+
+  # The canned ACL to apply. Defaults to "private".
+  acl = "public-read"
+
+  # Configure your bucket as a static website. It'll be available
+  #   at the AWS Region-specific website endpoint of the bucket.
+  #   http://bucket-name.s3-website-Region.amazonaws.com
+  website {
+    index_document = "index.html"
+  }
+
+  server_side_encryption_configuration {
+    rule {
+      apply_server_side_encryption_by_default {
+        sse_algorithm = "AES256"
+      }
+    }
+  }
+
+  # Enable versioning. Once you version-enable a bucket, it can never
+  #   return to an unversioned state. You can, however, suspend versioning
+  #   on that bucket.
+  versioning {
+    enabled = true
+  }
+
+  # All objects (including locked) are deleted when deleting a bucket.
+  force_destroy = true
+}
+
+resource "aws_s3_bucket_policy" "test4_policy" {
+  bucket = aws_s3_bucket.test4.id
+
+  policy = <<POLICY
+{
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Sid": "PublicReadGetObject",
+            "Effect": "Allow",
+            "Principal": "*",
+            "Action": [
+                "s3:GetObject"
+            ],
+            "Resource": [
+                "arn:aws:s3:::test4/*"
+            ]
+        }
+    ]
+}
+POLICY
 }
