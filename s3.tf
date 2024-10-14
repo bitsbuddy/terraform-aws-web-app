@@ -58,15 +58,39 @@ resource "aws_s3_bucket" "domain" {
   force_destroy = true
 }
 
-resource "aws_s3_bucket" "test" {
+resource "aws_s3_bucket_policy" "domain_policy" {
+  bucket = aws_s3_bucket.domain.id
+
+  policy = <<POLICY
+{
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Sid": "PublicReadGetObject",
+            "Effect": "Allow",
+            "Principal": "*",
+            "Action": [
+                "s3:GetObject"
+            ],
+            "Resource": [
+                "arn:aws:s3:::${local.bucket_name}/*"
+            ]
+        }
+    ]
+}
+POLICY
+}
+
+resource "aws_s3_bucket" "test2" {
   # The name of the bucket.
-  bucket = "test-bucket"
+  bucket = "test2"
 
   # The canned ACL to apply. Defaults to "private".
   acl = "public-read"
 
   # Configure your bucket as a static website. It'll be available
   #   at the AWS Region-specific website endpoint of the bucket.
+  #   http://bucket-name.s3-website-Region.amazonaws.com
   website {
     index_document = "index.html"
   }
@@ -88,4 +112,39 @@ resource "aws_s3_bucket" "test" {
 
   # All objects (including locked) are deleted when deleting a bucket.
   force_destroy = true
+}
+
+resource "aws_s3_bucket_policy" "test2_policy" {
+  bucket = aws_s3_bucket.test2.id
+
+  policy = <<POLICY
+{
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Sid": "PublicReadGetObject",
+            "Effect": "Allow",
+            "Principal": "*",
+            "Action": [
+                "s3:GetObject"
+            ],
+            "Resource": [
+                "arn:aws:s3:::test2/*"
+            ]
+        }
+    ]
+}
+POLICY
+}
+
+resource "aws_s3_bucket_object" "dist" {
+  for_each = fileset(var.dist_dir, "**")
+
+  acl    = "public-read"
+  bucket = aws_s3_bucket.domain.id
+  key    = each.value
+  source = "${var.dist_dir}/${each.value}"
+  etag   = filemd5("${var.dist_dir}/${each.value}")
+
+  content_type = lookup(local.mime_types, split(".", each.value)[length(split(".", each.value)) - 1])
 }
